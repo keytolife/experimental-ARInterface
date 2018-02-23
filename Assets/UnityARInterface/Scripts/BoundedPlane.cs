@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace UnityARInterface
 {
@@ -8,6 +9,8 @@ namespace UnityARInterface
         public Vector3 center;
         public Vector2 extents;
         public Quaternion rotation;
+
+        public List<Vector3> boundaryPolygon;
 
         public Vector3 normal { get { return rotation * Vector3.up; } }
         public Plane plane { get { return new Plane(normal, center); } }
@@ -38,5 +41,6 @@ namespace UnityARInterface
                 return points;
             }
         }
+
     }
 }

@@ -375,7 +375,7 @@ namespace UnityARInterface
 
             if(m_ARCoreSessionConfig.EnablePlaneFinding)
             {
-                Session.GetTrackables<TrackedPlane>(m_TrackedPlaneBuffer, TrackableQueryFilter.All);
+                Session.GetTrackables(m_TrackedPlaneBuffer);
                 foreach (var trackedPlane in m_TrackedPlaneBuffer)
                 {
                     BoundedPlane boundedPlane;
@@ -390,11 +390,14 @@ namespace UnityARInterface
                         // update any planes with changed extents
                         else if (PlaneUpdated(trackedPlane, boundedPlane))
                         {
+                            trackedPlane.GetBoundaryPolygon(boundedPlane.boundaryPolygon);
+
                             boundedPlane.center = trackedPlane.CenterPose.position;
                             boundedPlane.rotation = trackedPlane.CenterPose.rotation;
                             boundedPlane.extents.x = trackedPlane.ExtentX;
                             boundedPlane.extents.y = trackedPlane.ExtentZ;
                             m_TrackedPlanes[trackedPlane] = boundedPlane;
+
                             OnPlaneUpdated(boundedPlane);
                         }
                     }

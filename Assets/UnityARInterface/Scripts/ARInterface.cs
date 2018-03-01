@@ -35,6 +35,19 @@ namespace UnityARInterface
             AmbientColorTemperature = 1 << 1,
         }
 
+        public enum HitTestResultType
+        {
+            FeaturePoint = 0,
+            PlaneWithinInfinity = 1,
+            PlaneWithinExtents = 2,
+        }
+
+        public class HitTestResult
+        {
+            public Vector3 position;
+            public Quaternion rotation;
+        }
+
         public struct LightEstimate
         {
             public LightEstimateCapabilities capabilities;
@@ -122,6 +135,13 @@ namespace UnityARInterface
 
             return m_Interface;
         }
+
+        public static bool HitTest(Vector2 screenPos, out HitTestResult hitTestResult, List<HitTestResultType> hitTestResultTypes)
+        {
+            return m_Interface.RunHitTest(screenPos, out hitTestResult, hitTestResultTypes);
+        }
+
+        public abstract bool RunHitTest(Vector2 screenPos, out HitTestResult hitTestResult, List<HitTestResultType> hitTestResultTypes);
 
         public static void SetInterface(ARInterface arInterface)
         {

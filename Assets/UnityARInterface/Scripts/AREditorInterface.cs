@@ -181,5 +181,24 @@ namespace UnityARInterface
                     break;
             }
         }
+
+        public override bool RunHitTest(Vector2 screenPos, out HitTestResult hitTestResult, List<HitTestResultType> hitTestResultTypes)
+        {
+            
+            Ray ray = Camera.main.ScreenPointToRay(screenPos);
+            RaycastHit hit;
+            hitTestResult = null;
+            if(Physics.Raycast(ray, out hit)){
+                hitTestResult = new HitTestResult()
+                {
+                    position = hit.point,
+                    rotation = hit.transform.rotation
+                };
+                return true;
+            }
+
+            return false;
+
+        }
     }
 }

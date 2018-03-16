@@ -72,7 +72,8 @@ namespace UnityARInterface
         {
             m_SessionConfig = new ARKitWorldTrackingSessionConfiguration(
                 UnityARAlignment.UnityARAlignmentGravity,
-                settings.enablePlaneDetection ? UnityARPlaneDetection.Horizontal : UnityARPlaneDetection.None,
+                //settings.enablePlaneDetection ? UnityARPlaneDetection.Horizontal : UnityARPlaneDetection.None,
+                settings.enablePlaneDetection ? UnityARPlaneDetection.HorizontalAndVertical : UnityARPlaneDetection.None,
                 settings.enablePointCloud,
                 settings.enableLightEstimation);
 

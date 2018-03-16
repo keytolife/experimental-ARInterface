@@ -14,7 +14,7 @@ namespace UnityARInterface
 
         public int planeLayer { get { return m_PlaneLayer; } }
 
-        private Dictionary<string, GameObject> m_Planes = new Dictionary<string, GameObject>();
+        protected Dictionary<string, GameObject> m_Planes = new Dictionary<string, GameObject>();
 
         protected virtual void OnEnable()
         {

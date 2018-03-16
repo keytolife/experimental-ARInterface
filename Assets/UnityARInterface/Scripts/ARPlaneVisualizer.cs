@@ -7,16 +7,16 @@ namespace UnityARInterface
     public class ARPlaneVisualizer : ARBase
     {
         [SerializeField]
-        private GameObject m_PlanePrefab;
+        protected GameObject m_PlanePrefab;
 
         [SerializeField]
-        private int m_PlaneLayer;
+        protected int m_PlaneLayer;
 
         public int planeLayer { get { return m_PlaneLayer; } }
 
         private Dictionary<string, GameObject> m_Planes = new Dictionary<string, GameObject>();
 
-        void OnEnable()
+        protected virtual void OnEnable()
         {
             m_PlaneLayer = LayerMask.NameToLayer ("ARGameObject");
             ARInterface.planeAdded += PlaneAddedHandler;
@@ -24,7 +24,7 @@ namespace UnityARInterface
             ARInterface.planeRemoved += PlaneRemovedHandler;
         }
 
-        void OnDisable()
+        protected virtual void OnDisable()
         {
             ARInterface.planeAdded -= PlaneAddedHandler;
             ARInterface.planeUpdated -= PlaneUpdatedHandler;

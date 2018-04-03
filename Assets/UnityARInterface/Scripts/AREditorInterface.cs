@@ -86,8 +86,8 @@ namespace UnityARInterface
 
         public override bool TryGetPointCloud(ref PointCloud pointCloud)
         {
-			if (!IsRunning)
-				return false;
+            if (!IsRunning)
+			    return false;
 
             if (pointCloud.points == null)
                 pointCloud.points = new List<Vector3>();

@@ -471,7 +471,7 @@ namespace UnityARInterface
                     case HitTestResultType.FeaturePoint:
                         nativeFlags |= TrackableHitFlags.FeaturePoint;
                         break;
-                    case HitTestResultType.PlaneWithinExtents:
+                    case HitTestResultType.PlaneWithinBoxExtents:
                         nativeFlags |= TrackableHitFlags.PlaneWithinBounds;
                         break;
                     case HitTestResultType.PlaneWithinInfinity:
@@ -482,7 +482,7 @@ namespace UnityARInterface
             return nativeFlags;
         } 
 
-        public override bool RunHitTest(Vector2 screenPos, out HitTestResult hitTestResult, List<HitTestResultType> hitTestResultTypes)
+        public override bool NativeHitTest(Vector2 screenPos, out HitTestResult hitTestResult, List<HitTestResultType> hitTestResultTypes)
         {
             List<TrackableHit> hits = new List<TrackableHit>();
             TrackableHitFlags raycastFilter = GetTrackableHitFlags(hitTestResultTypes);

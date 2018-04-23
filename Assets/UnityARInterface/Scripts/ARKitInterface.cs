@@ -387,7 +387,7 @@ namespace UnityARInterface
                     case HitTestResultType.FeaturePoint:
                         nativeFlags.Add(ARHitTestResultType.ARHitTestResultTypeFeaturePoint);
                         break;
-                    case HitTestResultType.PlaneWithinExtents:
+                    case HitTestResultType.PlaneWithinBoxExtents:
                         nativeFlags.Add(ARHitTestResultType.ARHitTestResultTypeExistingPlaneUsingExtent);
                         break;
                     case HitTestResultType.PlaneWithinInfinity:
@@ -399,7 +399,7 @@ namespace UnityARInterface
             return nativeFlags.ToArray();
         }
 
-        public override bool RunHitTest(Vector2 screenPos, out HitTestResult hitTestResult, List<HitTestResultType> hitTestResultTypes)
+        public override bool NativeHitTest(Vector2 screenPos, out HitTestResult hitTestResult, List<HitTestResultType> hitTestResultTypes)
         {
             var viewPortPoint = Camera.main.ScreenToViewportPoint(screenPos);
 

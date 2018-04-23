@@ -35,11 +35,12 @@ namespace UnityARInterface
             AmbientColorTemperature = 1 << 1,
         }
 
+        [Flags]
         public enum HitTestResultType
         {
             FeaturePoint = 0,
             PlaneWithinInfinity = 1,
-            PlaneWithinExtents = 2,
+            PlaneWithinBoxExtents = 2,
         }
 
         public class HitTestResult
@@ -87,6 +88,8 @@ namespace UnityARInterface
         public abstract bool TryGetCameraImage(ref CameraImage cameraImage);
 
         public abstract bool TryGetPointCloud(ref PointCloud pointCloud);
+
+        public abstract bool NativeHitTest(Vector2 screenPos, out HitTestResult hitTestResult, List<HitTestResultType> hitTestResultTypes);
 
         public abstract LightEstimate GetLightEstimate();
 
@@ -136,16 +139,14 @@ namespace UnityARInterface
             return m_Interface;
         }
 
-        public static bool HitTest(Vector2 screenPos, out HitTestResult hitTestResult, List<HitTestResultType> hitTestResultTypes)
-        {
-            return m_Interface.RunHitTest(screenPos, out hitTestResult, hitTestResultTypes);
-        }
-
-        public abstract bool RunHitTest(Vector2 screenPos, out HitTestResult hitTestResult, List<HitTestResultType> hitTestResultTypes);
-
         public static void SetInterface(ARInterface arInterface)
         {
             m_Interface = arInterface;
+        }
+
+        public static bool HitTest(Vector2 screenPos, out HitTestResult hitTestResult, List<HitTestResultType> hitTestResultTypes)
+        {
+            return m_Interface.NativeHitTest(screenPos, out hitTestResult, hitTestResultTypes);
         }
     }
 }

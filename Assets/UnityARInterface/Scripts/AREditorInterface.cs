@@ -182,13 +182,19 @@ namespace UnityARInterface
             }
         }
 
-        public override bool RunHitTest(Vector2 screenPos, out HitTestResult hitTestResult, List<HitTestResultType> hitTestResultTypes)
+        public override bool NativeHitTest(Vector2 screenPos, out HitTestResult hitTestResult, List<HitTestResultType> hitTestResultTypes)
         {
-            
+            hitTestResult = null;
+
+            if (ARPlaneVisualizer.instance == null)
+            {
+                Debug.LogWarning("HitTest needs ARPlaneVisualizer in the current scene");
+                return false;
+            }
+
             Ray ray = Camera.main.ScreenPointToRay(screenPos);
             RaycastHit hit;
-            hitTestResult = null;
-            if(Physics.Raycast(ray, out hit)){
+            if(Physics.Raycast(ray, out hit, ARPlaneVisualizer.instance.m_PlaneLayer )){
                 hitTestResult = new HitTestResult()
                 {
                     position = hit.point,

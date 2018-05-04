@@ -87,7 +87,7 @@ namespace UnityARInterface
         public override bool TryGetPointCloud(ref PointCloud pointCloud)
         {
             if (!IsRunning)
-			    return false;
+                return false;
 
             if (pointCloud.points == null)
                 pointCloud.points = new List<Vector3>();
@@ -105,10 +105,10 @@ namespace UnityARInterface
             };
         }
 
-		public override Matrix4x4 GetDisplayTransform()
-		{
-			return Matrix4x4.identity;
-		}
+        public override Matrix4x4 GetDisplayTransform()
+        {
+            return Matrix4x4.identity;
+        }
 
         public override void UpdateCamera(Camera camera)
         {
@@ -197,7 +197,8 @@ namespace UnityARInterface
 
             Ray ray = Camera.main.ScreenPointToRay(screenPos);
             RaycastHit hit;
-            if(Physics.Raycast(ray, out hit, ARPlaneVisualizer.instance.m_PlaneLayer )){
+            if (Physics.Raycast(ray, out hit, ARPlaneVisualizer.instance.planeLayer))
+            {
                 hitTestResult = new HitTestResult()
                 {
                     position = hit.point,

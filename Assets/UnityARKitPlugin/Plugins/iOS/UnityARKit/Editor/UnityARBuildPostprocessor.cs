@@ -12,151 +12,160 @@ using System.Text.RegularExpressions;
 using System;
 
 
-public class UnityARBuildPostprocessor 
+public class UnityARBuildPostprocessor
 {
-	static List<ARReferenceImagesSet> imageSets = new List<ARReferenceImagesSet>();
-	// Build postprocessor. Currently only needed on:
-	// - iOS: no dynamic libraries, so plugin source files have to be copied into Xcode project
-	[PostProcessBuild]
-	public static void OnPostprocessBuild(BuildTarget target, string pathToBuiltProject)
-	{
-		if (target == BuildTarget.iOS)
-			OnPostprocessBuildIOS(pathToBuiltProject);
-	}
+    static List<ARReferenceImagesSet> imageSets = new List<ARReferenceImagesSet>();
+    // Build postprocessor. Currently only needed on:
+    // - iOS: no dynamic libraries, so plugin source files have to be copied into Xcode project
+    [PostProcessBuild]
+    public static void OnPostprocessBuild(BuildTarget target, string pathToBuiltProject)
+    {
+        if (target == BuildTarget.iOS)
+            OnPostprocessBuildIOS(pathToBuiltProject);
+    }
 
-	[PostProcessScene]
-	public static void OnPostProcessScene()
-	{
-		if (!BuildPipeline.isBuildingPlayer)
-			return;
-	
-		foreach(ARReferenceImagesSet ar in UnityEngine.Resources.FindObjectsOfTypeAll<ARReferenceImagesSet>())
-		{
-			if (!imageSets.Contains (ar)) {
-				imageSets.Add (ar);
-			}
-		}
+    [PostProcessScene]
+    public static void OnPostProcessScene()
+    {
+        if (!BuildPipeline.isBuildingPlayer)
+            return;
 
-	}
+        foreach (ARReferenceImagesSet ar in UnityEngine.Resources.FindObjectsOfTypeAll<ARReferenceImagesSet>())
+        {
+            if (!imageSets.Contains(ar))
+            {
+                imageSets.Add(ar);
+            }
+        }
 
-	private static UnityARKitPluginSettings LoadSettings()
-	{
-		UnityARKitPluginSettings loadedSettings = Resources.Load<UnityARKitPluginSettings> ("UnityARKitPlugin/ARKitSettings");
-		if (loadedSettings == null) {
-			loadedSettings = ScriptableObject.CreateInstance<UnityARKitPluginSettings> ();
-		}
-		return loadedSettings;
-	}
+    }
 
-	// Replaces the first C++ macro with the given name in the source file. Only changes
-	// single-line macro declarations, if multi-line macro declaration is detected, the
-	// function returns without changing it. Macro name must be a valid C++ identifier.
-	internal static bool ReplaceCppMacro(string[] lines, string name, string newValue)
-	{
-		bool replaced = false;
-		Regex matchRegex = new Regex(@"^.*#\s*define\s+" + name);
-		Regex replaceRegex = new Regex(@"^.*#\s*define\s+" + name + @"(:?|\s|\s.*[^\\])$");
-		for (int i = 0; i < lines.Count(); i++)
-		{
-			if (matchRegex.Match (lines [i]).Success) {
-				lines [i] = replaceRegex.Replace (lines [i], "#define " + name + " " + newValue);
-				replaced = true;
-			}
-		}
-		return replaced;
-	}
+    private static UnityARKitPluginSettings LoadSettings()
+    {
+        UnityARKitPluginSettings loadedSettings = Resources.Load<UnityARKitPluginSettings>("UnityARKitPlugin/ARKitSettings");
+        if (loadedSettings == null)
+        {
+            loadedSettings = ScriptableObject.CreateInstance<UnityARKitPluginSettings>();
+        }
+        return loadedSettings;
+    }
 
-	internal static void AddOrReplaceCppMacro(ref string[] lines, string name, string newValue)
-	{
-		if (ReplaceCppMacro (lines, name, newValue) == false) {
-			Array.Resize(ref lines, lines.Length + 1);
-			lines[lines.Length - 1] = "#define " + name + " " + newValue;
-		}
-	}
+    // Replaces the first C++ macro with the given name in the source file. Only changes
+    // single-line macro declarations, if multi-line macro declaration is detected, the
+    // function returns without changing it. Macro name must be a valid C++ identifier.
+    internal static bool ReplaceCppMacro(string[] lines, string name, string newValue)
+    {
+        bool replaced = false;
+        Regex matchRegex = new Regex(@"^.*#\s*define\s+" + name);
+        Regex replaceRegex = new Regex(@"^.*#\s*define\s+" + name + @"(:?|\s|\s.*[^\\])$");
+        for (int i = 0; i < lines.Count(); i++)
+        {
+            if (matchRegex.Match(lines[i]).Success)
+            {
+                lines[i] = replaceRegex.Replace(lines[i], "#define " + name + " " + newValue);
+                replaced = true;
+            }
+        }
+        return replaced;
+    }
 
-	static void UpdateDefinesInFile(string file, Dictionary<string, bool> valuesToUpdate)
-	{
-		string[] src = File.ReadAllLines(file);
-		var copy = (string[])src.Clone();
+    internal static void AddOrReplaceCppMacro(ref string[] lines, string name, string newValue)
+    {
+        if (ReplaceCppMacro(lines, name, newValue) == false)
+        {
+            Array.Resize(ref lines, lines.Length + 1);
+            lines[lines.Length - 1] = "#define " + name + " " + newValue;
+        }
+    }
 
-		foreach (var kvp in valuesToUpdate)
-			AddOrReplaceCppMacro(ref copy, kvp.Key, kvp.Value ? "1" : "0");
+    static void UpdateDefinesInFile(string file, Dictionary<string, bool> valuesToUpdate)
+    {
+        string[] src = File.ReadAllLines(file);
+        var copy = (string[])src.Clone();
 
-		if (!copy.SequenceEqual(src))
-			File.WriteAllLines(file, copy);
-	}
+        foreach (var kvp in valuesToUpdate)
+            AddOrReplaceCppMacro(ref copy, kvp.Key, kvp.Value ? "1" : "0");
 
-	static void AddReferenceImageToResourceGroup(ARReferenceImage arri, string parentFolderFullPath, string projectRelativePath, PBXProject project)
-	{
+        if (!copy.SequenceEqual(src))
+            File.WriteAllLines(file, copy);
+    }
 
-		ARResourceContents resourceContents = new ARResourceContents ();
-		resourceContents.info = new ARResourceInfo ();
-		resourceContents.info.author = "xcode";
-		resourceContents.info.version = 1;
+#if UNITY_IOS
+    static void AddReferenceImageToResourceGroup(ARReferenceImage arri, string parentFolderFullPath, string projectRelativePath, PBXProject project)
+    {
 
-		resourceContents.images = new ARResourceImage[1];
-		resourceContents.images [0] = new ARResourceImage ();
-		resourceContents.images [0].idiom = "universal";
+        ARResourceContents resourceContents = new ARResourceContents();
+        resourceContents.info = new ARResourceInfo();
+        resourceContents.info.author = "xcode";
+        resourceContents.info.version = 1;
 
-		resourceContents.properties = new ARResourceProperties ();
-		resourceContents.properties.width = arri.physicalSize;
+        resourceContents.images = new ARResourceImage[1];
+        resourceContents.images[0] = new ARResourceImage();
+        resourceContents.images[0].idiom = "universal";
 
-		//add folder for reference image
-		string folderToCreate = arri.imageName + ".arreferenceimage";
-		string folderFullPath = Path.Combine (parentFolderFullPath, folderToCreate);
-		string projectRelativeFolder = Path.Combine (projectRelativePath, folderToCreate);
-		Directory.CreateDirectory (folderFullPath);
-		project.AddFolderReference (folderFullPath, projectRelativeFolder);
+        resourceContents.properties = new ARResourceProperties();
+        resourceContents.properties.width = arri.physicalSize;
 
-		//copy file from texture asset
-		string imagePath = AssetDatabase.GetAssetPath(arri.imageTexture);
-		string imageFilename = Path.GetFileName (imagePath);
-		var dstPath = Path.Combine(folderFullPath, imageFilename);
-		File.Copy(imagePath, dstPath, true);
-		project.AddFile (dstPath, Path.Combine (projectRelativeFolder, imageFilename));
-		resourceContents.images [0].filename = imageFilename;
+        //add folder for reference image
+        string folderToCreate = arri.imageName + ".arreferenceimage";
+        string folderFullPath = Path.Combine(parentFolderFullPath, folderToCreate);
+        string projectRelativeFolder = Path.Combine(projectRelativePath, folderToCreate);
+        Directory.CreateDirectory(folderFullPath);
+        project.AddFolderReference(folderFullPath, projectRelativeFolder);
 
-		//add contents.json file
-		string contentsJsonPath = Path.Combine(folderFullPath, "Contents.json");
-		File.WriteAllText (contentsJsonPath, JsonUtility.ToJson (resourceContents, true));
-		project.AddFile (contentsJsonPath, Path.Combine (projectRelativeFolder, "Contents.json"));
+        //copy file from texture asset
+        string imagePath = AssetDatabase.GetAssetPath(arri.imageTexture);
+        string imageFilename = Path.GetFileName(imagePath);
+        var dstPath = Path.Combine(folderFullPath, imageFilename);
+        File.Copy(imagePath, dstPath, true);
+        project.AddFile(dstPath, Path.Combine(projectRelativeFolder, imageFilename));
+        resourceContents.images[0].filename = imageFilename;
 
-	}
+        //add contents.json file
+        string contentsJsonPath = Path.Combine(folderFullPath, "Contents.json");
+        File.WriteAllText(contentsJsonPath, JsonUtility.ToJson(resourceContents, true));
+        project.AddFile(contentsJsonPath, Path.Combine(projectRelativeFolder, "Contents.json"));
 
-	static void AddReferenceImagesSetToAssetCatalog(ARReferenceImagesSet aris, string pathToBuiltProject, PBXProject project)
-	{
-		List<ARReferenceImage> processedImages = new List<ARReferenceImage> ();
-		ARResourceGroupContents groupContents = new ARResourceGroupContents();
-		groupContents.info = new ARResourceGroupInfo ();
-		groupContents.info.author = "xcode";
-		groupContents.info.version = 1;
-		string folderToCreate = "Unity-iPhone/Images.xcassets/" + aris.resourceGroupName + ".arresourcegroup";
-		string folderFullPath = Path.Combine (pathToBuiltProject, folderToCreate);
-		Directory.CreateDirectory (folderFullPath);
-		project.AddFolderReference (folderFullPath, folderToCreate);
-		foreach (ARReferenceImage arri in aris.referenceImages) {
-			if (!processedImages.Contains (arri)) {
-				processedImages.Add (arri); //get rid of dupes
+    }
+
+    static void AddReferenceImagesSetToAssetCatalog(ARReferenceImagesSet aris, string pathToBuiltProject, PBXProject project)
+    {
+        List<ARReferenceImage> processedImages = new List<ARReferenceImage>();
+        ARResourceGroupContents groupContents = new ARResourceGroupContents();
+        groupContents.info = new ARResourceGroupInfo();
+        groupContents.info.author = "xcode";
+        groupContents.info.version = 1;
+        string folderToCreate = "Unity-iPhone/Images.xcassets/" + aris.resourceGroupName + ".arresourcegroup";
+        string folderFullPath = Path.Combine(pathToBuiltProject, folderToCreate);
+        Directory.CreateDirectory(folderFullPath);
+        project.AddFolderReference(folderFullPath, folderToCreate);
+        foreach (ARReferenceImage arri in aris.referenceImages)
+        {
+            if (!processedImages.Contains(arri))
+            {
+                processedImages.Add(arri); //get rid of dupes
 				AddReferenceImageToResourceGroup(arri, folderFullPath, folderToCreate, project);
-			}
-		}
+            }
+        }
 
-		groupContents.resources = new ARResourceGroupResource[processedImages.Count];
-		int index = 0;
-		foreach (ARReferenceImage arri in processedImages) {
-			groupContents.resources [index] = new ARResourceGroupResource ();
-			groupContents.resources [index].filename = arri.imageName + ".arreferenceimage";
-			index++;
-		}
-		string contentsJsonPath = Path.Combine(folderFullPath, "Contents.json");
-		File.WriteAllText (contentsJsonPath, JsonUtility.ToJson (groupContents, true));
-		project.AddFile (contentsJsonPath, Path.Combine (folderToCreate, "Contents.json"));
-	}
+        groupContents.resources = new ARResourceGroupResource[processedImages.Count];
+        int index = 0;
+        foreach (ARReferenceImage arri in processedImages)
+        {
+            groupContents.resources[index] = new ARResourceGroupResource();
+            groupContents.resources[index].filename = arri.imageName + ".arreferenceimage";
+            index++;
+        }
+        string contentsJsonPath = Path.Combine(folderFullPath, "Contents.json");
+        File.WriteAllText(contentsJsonPath, JsonUtility.ToJson(groupContents, true));
+        project.AddFile(contentsJsonPath, Path.Combine(folderToCreate, "Contents.json"));
+    }
+#endif
 
-	private static void OnPostprocessBuildIOS(string pathToBuiltProject)
-	{
-		// We use UnityEditor.iOS.Xcode API which only exists in iOS editor module
-		#if UNITY_IOS
+    private static void OnPostprocessBuildIOS(string pathToBuiltProject)
+    {
+        // We use UnityEditor.iOS.Xcode API which only exists in iOS editor module
+#if UNITY_IOS
 		string projPath = pathToBuiltProject + "/Unity-iPhone.xcodeproj/project.pbxproj";
 
 		UnityEditor.iOS.Xcode.PBXProject proj = new UnityEditor.iOS.Xcode.PBXProject();
@@ -222,6 +231,6 @@ public class UnityARBuildPostprocessor
 		}
 
 		File.WriteAllText(projPath, proj.WriteToString());
-		#endif // #if UNITY_IOS
-	}
+#endif // #if UNITY_IOS
+    }
 }

@@ -396,7 +396,7 @@ namespace UnityARInterface
                         break;
                 }
             }
-            nativeFlags.Add(ARHitTestResultType.ARHitTestResultTypeHorizontalPlane);
+            nativeFlags.Add(ARHitTestResultType.ARHitTestResultTypeEstimatedHorizontalPlane);
             return nativeFlags.ToArray();
         }
 
@@ -412,7 +412,7 @@ namespace UnityARInterface
 
             // prioritize reults types
             ARHitTestResultType[] resultTypes = GetARHitTestResultType(hitTestResultTypes);
-         
+
             hitTestResult = null;
             foreach (ARHitTestResultType resultType in resultTypes)
             {

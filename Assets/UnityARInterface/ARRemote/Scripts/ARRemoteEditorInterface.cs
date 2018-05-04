@@ -312,6 +312,11 @@ namespace UnityARInterface
                 }
             }
         }
+
+        public override bool NativeHitTest(Vector2 screenPos, out HitTestResult hitTestResult, List<HitTestResultType> hitTestResultTypes)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
 #endif
